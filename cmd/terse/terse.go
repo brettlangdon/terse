@@ -28,6 +28,7 @@ func main() {
 	// Start the server
 	server, err := terse.NewServer(args.Bind, args.MaxEntries, args.ServerURL)
 	if err == nil {
+		log.Printf("Listening on \"%s\"", args.Bind)
 		err = server.ListenAndServe()
 	}
 	log.Fatal(err)

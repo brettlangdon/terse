@@ -3,6 +3,7 @@ package terse
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -22,6 +23,7 @@ func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		handler.HandlePost(w, r)
 	default:
+		log.Printf("%s 405", r.Method)
 		http.Error(w, fmt.Sprintf("Method \"%s\" Not Allowed", r.Method), http.StatusMethodNotAllowed)
 	}
 }
@@ -37,10 +39,12 @@ func (handler *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	if ok {
 		switch url := value.(type) {
 		case string:
+			log.Printf("GET \"%s\" 301 \"%s\"", code, url)
 			http.Redirect(w, r, url, http.StatusMovedPermanently)
 			return
 		}
 	}
+	log.Printf("GET \"%s\" 404", code)
 	http.NotFound(w, r)
 }
 
@@ -53,7 +57,8 @@ func (handler *Handler) HandlePost(w http.ResponseWriter, r *http.Request) {
 	// Ensure url given is a real url
 	cleanUrl, err := CleanURL(rawurl)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Invalid url \"%s\"", reader.Text()), http.StatusBadRequest)
+		log.Printf("POST \"%s\" 400", rawurl)
+		http.Error(w, fmt.Sprintf("Invalid url \"%s\"", rawurl), http.StatusBadRequest)
 		return
 	}
 
@@ -64,6 +69,7 @@ func (handler *Handler) HandlePost(w http.ResponseWriter, r *http.Request) {
 	// Generate response url
 	codeUrl := handler.serverURL
 	codeUrl.Path = "/" + code
+	log.Printf("POST \"%s\" saved \"%s\"", rawurl, code)
 	fmt.Fprintf(w, codeUrl.String())
 }
 
