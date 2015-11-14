@@ -13,10 +13,14 @@ var args struct {
 }
 
 func main() {
+	// Setup default args
 	args.MaxEntries = 1000
 	args.Bind = "127.0.0.1:5892"
+
+	// Parse args from CLI
 	arg.MustParse(&args)
 
+	// Start the server
 	server := terse.NewServer(args.Bind, args.MaxEntries)
 	log.Fatal(server.ListenAndServe())
 }
