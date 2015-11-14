@@ -11,7 +11,8 @@ import (
 )
 
 type Handler struct {
-	cache *lru.Cache
+	cache     *lru.Cache
+	serverURL *url.URL
 }
 
 func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -61,19 +62,21 @@ func (handler *Handler) HandlePost(w http.ResponseWriter, r *http.Request) {
 	handler.cache.Add(code, cleanUrl)
 
 	// Generate response url
-	codeUrl := &url.URL{
-		Scheme: "https",
-		Host:   r.Host,
-		Path:   "/" + code,
-	}
+	codeUrl := handler.serverURL
+	codeUrl.Path = "/" + code
 	fmt.Fprintf(w, codeUrl.String())
 }
 
-func NewServer(bind string, maxEntries int) *http.Server {
+func NewServer(bind string, maxEntries int, serverURL string) (*http.Server, error) {
+	parsedURL, err := url.ParseRequestURI(serverURL)
+	if err != nil {
+		return nil, err
+	}
 	return &http.Server{
 		Addr: bind,
 		Handler: &Handler{
-			cache: lru.New(maxEntries),
+			cache:     lru.New(maxEntries),
+			serverURL: parsedURL,
 		},
-	}
+	}, nil
 }
