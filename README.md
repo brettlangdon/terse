@@ -1,5 +1,7 @@
 terse
 =====
+[![GoDoc](https://godoc.org/github.com/brettlangdon/terse?status.svg)](https://godoc.org/github.com/brettlangdon/terse)
+
 Short URL server written in [go](https://golang.org) which stores all URL short code mappings in an in-memory least recently used (LRU) cache.
 
 ## Getting Started
