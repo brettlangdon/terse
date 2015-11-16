@@ -9,7 +9,7 @@ import (
 )
 
 var args struct {
-	MaxEntries int    `arg:"-m,--max,help:max number of links to keep [default: 1000]"`
+	MaxEntries int    `arg:"-m,--max,help:max number of links to keep (\"0\" means no limit) [default: 1000]"`
 	Bind       string `arg:"-b,--bind,help:\"[host]:<port>\" to bind the server to [default: 127.0.0.1:5892]"`
 	ServerURL  string `arg:"-s,--server,help:base server url to generate links as (e.g. \"https://short.domain.com\") [default: \"http://<bind>\"]"`
 }
