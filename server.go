@@ -37,12 +37,9 @@ func (handler *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 
 	// If the url exists in the cache and is a string, redirect to it
 	if ok {
-		switch url := value.(type) {
-		case string:
-			log.Printf("GET \"%s\" 301 \"%s\"", code, url)
-			http.Redirect(w, r, url, http.StatusMovedPermanently)
-			return
-		}
+		log.Printf("GET \"%s\" 301 \"%s\"", code, value.(string))
+		http.Redirect(w, r, value.(string), http.StatusMovedPermanently)
+		return
 	}
 	log.Printf("GET \"%s\" 404", code)
 	http.NotFound(w, r)
@@ -64,12 +61,25 @@ func (handler *Handler) HandlePost(w http.ResponseWriter, r *http.Request) {
 
 	// Generate short code and store in cache
 	code := GetShortCode([]byte(cleanUrl))
-	handler.cache.Add(code, cleanUrl)
+
+	// If the short code exists, and the urls are different, complain about the conflict
+	value, ok := handler.cache.Get(code)
+	if ok {
+		if value.(string) != cleanUrl {
+			log.Printf("POST \"%s\" 409", rawurl)
+			msg := fmt.Sprintf("Short code conflict \"%s\" already registered as \"%s\"", code, value.(string))
+			http.Error(w, msg, http.StatusConflict)
+			return
+		}
+	} else {
+		handler.cache.Add(code, cleanUrl)
+	}
 
 	// Generate response url
 	codeUrl := handler.serverURL
 	codeUrl.Path = "/" + code
-	log.Printf("POST \"%s\" saved \"%s\"", rawurl, code)
+	log.Printf("POST \"%s\" 201 created \"%s\"", rawurl, code)
+	w.WriteHeader(http.StatusCreated)
 	fmt.Fprintf(w, codeUrl.String())
 }
 
